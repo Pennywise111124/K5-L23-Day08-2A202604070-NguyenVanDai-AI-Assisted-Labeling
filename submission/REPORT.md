@@ -1,19 +1,27 @@
-# Báo cáo Day 08 — <<MSHV - Họ và tên>>
+# Báo cáo Day 08 — 2A202604070 - Nguyễn Văn Đại
 
-> Một file duy nhất cho cả bài (đã gộp recipe, QC và ghi chú cá nhân). Mọi con số kèm **mẫu số** và nguồn (file nào). Viết bằng lời của bạn.
+> Một file duy nhất cho cả bài (đã gộp recipe, QC và ghi chú cá nhân). Mọi con số kèm **mẫu số** và nguồn (file nào).
 
 ## 1. Model và recipe (Part 2–3)
 
-| Lớp | Model + cỡ | Ngưỡng | Vì sao (dẫn `run_id` trong `model_log.csv`) |
-|---|---|---|---|
-| person / bicycle / motorbike / car / bus / truck | <<YOLO26m>> | <<theo lớp, từ threshold_sweep>> | <<>> |
-| three_wheeler | <<YOLOE-26s, prompt: ...>> | <<>> | <<>> |
+| Lớp | Gold | Model + cỡ | Ngưỡng | Vì sao (dẫn `run_id` trong `model_log.csv`) |
+|---|---|---|---|---|
+| person | 23 | YOLO26m | 0.3 (mặc định) | Recall tối đa 20/23 = 87,0% (< 90%) nên không chọn ngưỡng riêng; ở 0.3: recall 19/23 = 82,6%, precision 19/33 = 57,6% (r01, r02, r08) |
+| motorbike | 12 | YOLO26m | 0.3 (mặc định) | Recall tối đa 10/12 = 83,3% (< 90%); ở 0.3: recall 8/12 = 66,7%, precision 8/11 = 72,7% (r08) |
+| car | 9 | YOLO26m | 0.3 (mặc định) | Recall tối đa 8/9 = 88,9% (< 90%, thiếu 1 xe); ở 0.3: precision 8/13 = 61,5% (r08) |
+| bicycle | 4 | YOLO26m | 0.3 (mặc định) | Chỉ 4 vật gold (< 5) nên không chọn ngưỡng theo lớp; ở 0.3: recall 2/4 = 50%, precision 2/5 = 40% (r08) |
+| bus | 1 | YOLO26m | 0.3 (mặc định) | 1 vật gold (< 5); ở 0.3: 1/1 (r08) |
+| truck | 0 | YOLO26m | 0.3 (mặc định) | Không có vật gold trong 4 ảnh (r08) |
+| three_wheeler | 7 | YOLOE-26s, prompt: tuk-tuk, cyclo, cargo tricycle | 0.15 | Recall 7/7 = 100%, precision 7/9 = 77,8%; ở 0.25 (ngưỡng đã dùng ở r03) chỉ 5/7 = 71,4%. YOLO26 không có lớp này (r01, r03, r09) |
 
-- Lệnh `merge_prelabels.py` đã dùng (dán nguyên): <<>>
-- **Phiên bản SAM bạn chọn** (SAM 1 / 2.1 / 3) và lý do: <<chất lượng mask, tốc độ, RAM, quyền truy cập>>
-- Lỗi nào **không sửa được bằng đổi ngưỡng** (ví dụ tuk-tuk bị gọi `car`)? Sửa thế nào? <<>>
-- Box **điểm cao mà sai** hoặc **điểm thấp mà đúng** (ảnh nào): <<>>
-- Giới hạn: chọn ngưỡng trên chính gold (4 ảnh) nên số đo máy trên gold là lạc quan: <<>>
+Nguồn số đo: `qc/threshold_sweep.csv` (mẫu số: 4 ảnh gold, 56 vật có lớp trong bảng).
+
+- Lệnh `merge_prelabels.py` đã dùng (dán nguyên): <<điền sau khi chạy ở Part 4>>
+- **Phiên bản SAM bạn chọn** (SAM 1 / 2.1 / 3) và lý do: <<điền sau Part 5>>
+- Lỗi **không sửa được bằng đổi ngưỡng**: YOLO26 chỉ có 80 lớp COCO nên gọi xe ba bánh là car/truck/motorbike/bicycle (r01), và ngưỡng chỉ lọc theo điểm chứ không đổi được nhãn: `img_002` xe bán tải bị gọi `truck 0.73` vẫn còn ở ngưỡng 0.5 (r02). Với `person`, `motorbike` và `car`, trên gold máy bỏ sót 3/23, 2/12 và 1/9 vật ngay cả ở ngưỡng thấp nhất được quét (0.1), vì máy không tạo ra box nào cho các vật đó nên hạ ngưỡng cũng không giúp. Cách xử lý theo kế hoạch: dùng YOLOE cho `three_wheeler` (ngưỡng riêng 0.15), cho YOLOE ưu tiên hơn YOLO26 khi hai box chồng nhau lúc merge, và duyệt tay các bước "bỏ sót" và "sai nhãn" ở Part 4.
+- Box **điểm cao mà sai**: `img_002` truck 0.73 (xe bán tải, thuộc `car` theo guideline); `img_011` truck 0.77 (vật ở mép trái); `img_032` bicycle 0.70 (xích lô); `img_012` box three_wheeler 0.45 ở [908,93,116,149] trúng hàng rào chắn kim loại ở mép phải ảnh, không phải xe.
+- Box **điểm thấp mà đúng**: `img_012` có hai xe ba bánh gold mà YOLOE chỉ cho điểm 0.24 và 0.19, nên ngưỡng 0.25 mất 2/7 xe và phải hạ xuống 0.15.
+- Giới hạn: cả 7 xe ba bánh gold nằm ở 2 ảnh (`img_012`: 4, `img_020`: 3); ngưỡng được chọn và chấm trên chính 4 ảnh gold nên recall 100% là con số lạc quan. Chi phí của 0.15: trên 36 ảnh có 61 box YOLOE ≥ 0.15 so với 47 box ≥ 0.25, tức thêm 14 box cần duyệt. Ở `img_012`, box hàng rào 0.45 có điểm cao hơn cả 4 xe ba bánh đúng (0.19–0.36) nên không ngưỡng nào tách được hai nhóm này; vì vậy ngưỡng 0.15 chỉ có nghĩa là giữ recall và chấp nhận phải xoá box thừa khi review, chứ không loại hết được lỗi.
 
 ## 2. AI error profile (từ `qc/review_stats.md`)
 
