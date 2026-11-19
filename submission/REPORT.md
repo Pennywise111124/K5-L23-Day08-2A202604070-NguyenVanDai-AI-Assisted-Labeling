@@ -75,29 +75,31 @@ Mẫu: 24 ảnh batch; 519 box máy; 495 đối tượng sau duyệt. Đã loạ
 | `img_008` (xe ba gác chở chuối, xe thứ hai liền kề) | sam2.1_b.pt | 9 click (4 dương: bánh trái, bánh phải, tấm ván xanh, thanh khung; 5 âm: chuối ×2, người bán, bánh và thùng đỏ của xe liền kề); chạy 1 lần | Không gồm hàng hoá: chuối bị loại (hàng trên 1,3%, hàng dưới 1,0% vùng bị tô); không có người lái; xe liền kề không bị tràn (bánh 0,8%, thùng đỏ 2,0%). | 29.435 px (4,2% ảnh; 25,3% box xe 116.293 px), **4 polygon**: chuối che gần hết thùng nên mask vỡ thành nhiều mảnh rời. Bánh trái 83,7% nhưng bánh phải chỉ 31,0%, tấm ván xanh 50,8%, thanh khung ngang 10,3%: thiếu phần lớn khung và bánh phải bị rỗng. | `bagac_img008.jpg` |
 
 - Đối chiếu guideline mục 4.2: **giúp:** 4.2.4 (hai vật chạm nhau không chồng lên nhau) là cơ sở để loại người ngồi (img_013, img_010) và xe liền kề (img_008) khỏi mask; 4.2.1 (bánh xe thuộc vật) cho biết `v2` của `img_013` và `mobile_sam` cắt cụt bánh là lỗi; 4.2.2 (bỏ lỗ lớn, không vẽ lỗ nhỏ) giải thích mask rỗng của xích lô `img_010`. **Thiếu:** (1) người ngồi *bên trong* xe ba bánh khung hở (người lái, hành khách) có thuộc mask xe không: guideline không nói, tôi tự quyết định loại; (2) chân người lái chạm sàn xe (`img_013`): "vùng chạm thuộc vật ở phía trước" không xác định được vật nào ở phía trước; (3) hàng hoá chất trên thùng xe (`img_008`): guideline 4.1.5 chỉ nói về hàng nhô ra khỏi xe quá 20% và câu hỏi mở số 3 ở mục 6 vẫn chưa chốt, nên tôi chọn loại chuối khỏi mask; (4) một vật bị che thành nhiều mảnh (`img_008`, 4 polygon): không nói nên dùng một polygon hay nhiều. Cả bốn là ứng viên cho calibration ở Part 6.
+- Sau calibration (CAL-01), quyết định mới là hàng nằm trong khay hoặc thùng gắn cố định thì thuộc xe, nên mask `img_008` (loại cả hàng chuối dưới khay) chưa nhất quán với v1.1. Tôi không làm lại mask vì hết thời gian Part 5; việc này thuộc vòng Rework.
 
 ## 6. Calibration (Part 6)
 
-- Số quyết định: <<>> (`calibration_decisions.csv`); quan trọng nhất (dẫn `CAL-xx`): <<>>
-- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: <<>>
-- Nguyên nhân gốc: <<guideline mơ hồ / chưa nắm quy tắc / máy>>
+- Số quyết định: 8 (`calibration_decisions.csv`); quan trọng nhất: CAL-01 (hàng chất trên thùng ba gác: box và mask chưa nhất quán ở `img_008`), CAL-05 (một xe bị tách thành nhiều box, `img_013` và `img_003`) và CAL-07 (mask xe có gồm người ngồi bên trong không, `img_013`).
+- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: chốt câu hỏi mở 2, 3, 4; sửa 4.1.2; thêm 4.1.8 (mỗi vật đúng một box), 4.1.9 (hàng trong thùng cố định thuộc xe, hàng chất cao vượt mép thì không), 4.1.10 (xe đỗ dày gần camera vẽ từng xe) và 4.2.5 (mask xe loại người ngồi, giữ đủ bánh).
+- Nguyên nhân gốc: **guideline mơ hồ** ở CAL-01, CAL-02, CAL-03, CAL-05, CAL-07; **máy** ở CAL-04 (YOLOE gán `three_wheeler` cho xe tải và xe buýt với điểm cao); **tôi chưa áp dụng quy tắc đã có** ở CAL-06 (10 box dưới 20 px trái với 4.1.6) và CAL-08 (3 bẫy `missing` lọt vì duyệt nhanh 1,67 phút/ảnh).
 
 ## 7. QC và quyết định (Part 6)
 
-- Mẫu: <<n>> ảnh (<<m>> ảnh `can_review` + <<k>> ngẫu nhiên, seed 42); người kiểm: bạn (**hạn chế**: bạn vừa là người duyệt).
-- Lỗi theo **đối tượng**: <<.../... = ...%>> · theo **ảnh**: <<.../... = ...%>> (ngưỡng Release ≤ 2%)
-- Top lỗi (trong: bỏ sót, thừa, sai lớp, sai vị trí/kích thước, sai thuộc tính, sai mask) + một ảnh ví dụ mỗi loại: <<>>
-- **Giới hạn mẫu nhỏ** (cận trên 95% trong `qc_report_auto.md`): <<>>
-- Script kiểm được / không kiểm được (ví dụ ôm sát, cùng bỏ sót với máy, theo checklist thật): <<>>
+- Mẫu: 5 ảnh (0 ảnh `can_review` + 5 ngẫu nhiên, seed 42; `img_003`, `img_006`, `img_014`, `img_031`, `img_035`), 102 đối tượng; người kiểm: tôi (**hạn chế**: tôi vừa là người duyệt).
+- Lỗi theo **đối tượng**: 7/102 = 6,9% · theo **ảnh**: 5/5 = 100% (ngưỡng Release ≤ 2%).
+- Top lỗi: `thua` 3 (`img_003`), `sai_vi_tri_kich_thuoc` 3 (`img_014`, `img_031`, `img_035`), `bo_sot` 1 (`img_006`).
+- **Giới hạn mẫu nhỏ:** 5 ảnh lỗi trong 5 ảnh mẫu nên cận trên 95% (Wilson) của tỉ lệ ảnh lỗi thật là 100%; mẫu 5 ảnh không đủ để chứng minh ngưỡng 2%, và tỉ lệ 6,9% theo đối tượng cũng có khoảng tin cậy rộng.
+- Script kiểm được / không kiểm được: script chỉ đếm theo phiếu tôi điền, nên không kiểm được việc tôi bỏ sót lỗi ở ảnh dày (`img_006`, `img_003`) hay việc tôi vừa là người duyệt vừa là người kiểm; không kiểm được box ôm sát đến mức nào ngoài mức tôi nhìn bằng mắt.
+- Lỗi đã biết ngoài mẫu: 10 box cao dưới 20 px chưa chuyển sang `ignore_region` (`img_018` ×5, `img_025`, `img_027` ×2, `img_033`, `img_034`).
 
-**Quyết định: <<Release / Hold / Rework>>**, ngày <<YYYY-MM-DD>>. Lý do (đi theo Hold → Rework → Release): <<>>
-Nếu Rework / Hold, việc cần làm tiếp: <<>>
+**Quyết định: Rework**, ngày 19-11-2026. Lý do (đi theo Hold → Rework → Release): câu 1 (Hold) không đúng vì mọi câu hỏi mở đã gặp trong batch đều chốt ở v1.1 (câu 1, 5, 6, 7 chưa gặp nên chưa chốt); câu 2 đúng: ảnh lỗi 100% > 2% và bắt bẫy 6/12 = 50% < 80%.
+Việc cần làm tiếp: sửa 7 lỗi mẫu và 10 box dưới 20 px bằng `qc_fixed.json`; duyệt lại ảnh dày (`img_021`, `img_024`) với quy trình 3 quy tắc ở mục 4; chạy lại `build_release.py` và `qc_sample.py --force`; đo vòng 2 rồi mới xét lại Release.
 
 ## 8. Ghi chú cá nhân
 
-- **Dùng AI để làm bài** (công cụ nào, việc gì, kiểm tra thế nào; "không dùng" nếu không): <<>>
-- Gold có bị nhiễm không (bạn có nhìn pre-label hay hỏi AI trước khi gán xong)? <<không / có, như sau: ...>>
-- Máy / GPU / CVAT dùng; vướng mắc cài đặt: <<>>
-- Dùng cache `data/cache/` thay vì tự chạy? <<không / có, vì ...>>
-- Lỗi / bug script đã gặp (nếu có): <<>>
-- Một điều bạn làm khác lần sau: <<>>
+- **Dùng AI để làm bài:** Tôi dùng Claude (claude.ai) tóm tắt repo; hướng dẫn từng Part và các lệnh; đọc output lệnh và kiểm số liệu.
+- **Gold có bị nhiễm không:** Không bị nhiễm bởi pre-label: tôi gán tay 4 ảnh gold và export `gold_manual.json` (commit `a6ed350`) trước khi chạy bất kỳ model nào. Ngay từ đầu tôi đã tải cả repo (có ảnh) lên Claude để tóm tắt, nhưng Claude không gán nhãn cho ảnh gold. Sau khi export, tôi gửi `gold_manual.json` cho Claude; Claude chỉ ra 3 điểm để tôi tự soát (3 box `motorbike` chồng nhau ở `img_001`, không có `three_wheeler` ở `img_001` và `img_036`, 3 box `can_review`). Tôi xem lại và không sửa gold.
+- **Máy / GPU / CVAT:** Windows, Python 3.12.10, torch 2.15.0+cpu, ultralytics 8.4.215, không có GPU (chạy CPU); CVAT Docker v2.81.0. Vướng mắc: lần chạy YOLOE đầu tiên tự cài CLIP từ GitHub và tải `mobileclip` (nạp mất 32,9 s); cảnh báo `torch.jit.load` deprecated; thông điệp commit tiếng Việt bị lỗi hiển thị trong `cmd`.
+- **Dùng cache `data/cache/` thay vì tự chạy?** Không. Tôi tự chạy `prelabel.py` (`y26_all`, `yoloe_all`); số box trùng với cache (1669 và 125) vì cùng model và ngưỡng.
+- **Lỗi / bug script đã gặp:** Không sửa script nào của repo. Tôi thêm `tinh_tw.py` (script tính riêng, import `review_stats`) để tái tạo các số ở mục 2. Pylance báo "Cannot find module `review_stats`" khi mở `tinh_tw.py` chỉ là cảnh báo tĩnh, chạy thật không lỗi.
+- **Một điều tôi làm khác lần sau:** Ghi số vật tôi tự đếm ở bước 0 cho mọi ảnh và dành ít nhất khoảng 3 phút cho ảnh dày; lần này tôi duyệt trung bình 1,67 phút/ảnh nên lọt cả 3 bẫy `missing`, 10 box dưới 20 px và 3 box chồng nhau ở `img_003`. Tôi cũng sẽ chuyển ngay các cụm vật nhỏ sang `ignore_region` theo 4.1.6 thay vì giữ từng box.

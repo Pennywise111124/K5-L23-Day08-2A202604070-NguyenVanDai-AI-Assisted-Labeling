@@ -1,0 +1,8 @@
+image,object_id,error_type,reviewer,note
+img_003.jpg,1,thua,Nguyen Van Dai,box three_wheeler chi phan mui cua xe ba gac (xe da co box ca xe #20)
+img_003.jpg,2,thua,Nguyen Van Dai,"box three_wheeler o mep trai trung quay/mai hien, khong phai xe"
+img_003.jpg,24,thua,Nguyen Van Dai,box three_wheeler chi phan than duoi cua xe ba gac (trung voi #20)
+img_006.jpg,,bo_sot,Nguyen Van Dai,"thieu 1 tre ngoi giua #70 va #86 (khoang x 815-860, y 455-545)"
+img_014.jpg,139,sai_vi_tri_kich_thuoc,Nguyen Van Dai,"box motorbike cat mat den hau/bien so ben trai, du khoang duong phia tren, cat banh duoi"
+img_031.jpg,434,sai_vi_tri_kich_thuoc,Nguyen Van Dai,box person dung o ngang tay (y~435) trong khi chan van thay qua nan hoa den het anh
+img_035.jpg,500,sai_vi_tri_kich_thuoc,Nguyen Van Dai,box three_wheeler cao hon xich lo ~34 px (khoang 50 phan tram chieu cao)
