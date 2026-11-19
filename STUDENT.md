@@ -5,7 +5,7 @@
 - Lớp (L2 / L3 / khác): L2B
 - Tài khoản GitHub: Pennywise111124
 - Repo bài nộp (URL): https://github.com/Pennywise111124/K5-L23-Day08-2A202604070-NguyenVanDai-AI-Assisted-Labeling
-- Commit chốt bài (hash): <<>>
+- Commit chốt bài (hash): acd191b40588aeb046b593bd304466e253a50124
 - Máy: Windows, Python 3.12.10, không có GPU (chạy CPU)
 - CVAT (Docker): v2.81.0
 
